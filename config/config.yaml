@@ -1,6 +1,6 @@
 preprocessing:
   do_preprocessing: True
-  original_data_path: YOUR_DATA_PATH_HERE
+  original_data_path: ./data/original_data/exchange_rate.csv
   output_ori_path: ./data/ori/
   dataset_name: stock
   use_ucr_uea_dataset: False # Set it True if you need ucr/uea dataset
@@ -11,10 +11,10 @@ preprocessing:
 
 generation:
   do_generation: True
-  model: TimeVAE
+  model: TimeVAE 
   dataset_name: stock
   output_gen_path: ./data/gen/
-  pretrain_path : ./pretrain_model/
+  pretrain_path : ./saved_models/timevae/
   no_cuda: True # Set it True if you don't need cuda in generation stage
   cuda_device: 0 # Specify the index if you use cuda and have multiple cuda devices
   latent_dim: 64
@@ -25,7 +25,7 @@ evaluation:
   result_path: ./result/
   no_cuda: True # Set it True if you don't need cuda in eval stage
   cuda_device: 0 # Specify the index if you use cuda and have multiple cuda devices
-  method_list: [DS,PS]
+  method_list: [DS,PS,t-SNE,Distribution,DTW]
   #[C-FID,MDD,ACD,SD,KD,ED,DTW,t-SNE,Distribution]
   iter_disc: 2000
   iter_pred: 5000
