@@ -32,7 +32,8 @@ def generate_data(cfg,data):
         show_with_end_divider('Error: Model initialization failed.')
         return None
     
-    generated_data = model.sample_data(train_data.shape[0])
+    #generated_data = model.sample_data(train_data.shape[0])
+    generated_data = model.get_prior_samples(train_data.shape[0])
     output_path = os.path.join(output_gen_path,model_name,f'{dataset_name}_gen.pkl')
     make_sure_path_exist(output_path)
     with mgzip.open(os.path.join(output_path), 'wb') as f:
