@@ -134,10 +134,12 @@ def preprocess_data(cfg):
     # Save preprocessed data
     output_path = os.path.join(output_ori_path,dataset_name)
     make_sure_path_exist(output_path+os.sep)
+    '''
     with mgzip.open(os.path.join(output_path,f'{dataset_name}_train.pkl'), 'wb') as f:
         pickle.dump(train_data, f)
     with mgzip.open(os.path.join(output_path,f'{dataset_name}_valid.pkl'), 'wb') as f:
         pickle.dump(valid_data, f)
+    '''
 
     show_with_end_divider(f'Preprocessing done. Preprocessed files saved to {output_path}.')
     return train_data, valid_data

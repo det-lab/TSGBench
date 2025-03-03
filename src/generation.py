@@ -1,7 +1,7 @@
 import mgzip
 import pickle
 import os
-from model.timevae_model import initialize_timevae_model
+from model.model_wrapper import initialize_timevae_model, initialize_timegan_model
 from .utils import show_with_start_divider,show_with_end_divider, make_sure_path_exist
 
 def generate_data(cfg,data):
@@ -24,6 +24,8 @@ def generate_data(cfg,data):
 
     if model_name == 'TimeVAE':
         model = initialize_timevae_model(cfg,train_data[0].shape)
+    elif model_name == 'TimeGAN':
+        model = initialize_timegan_model(cfg,train_data)
     else:
         show_with_end_divider('Error: Model not implemented.')
         return None
@@ -32,8 +34,8 @@ def generate_data(cfg,data):
         show_with_end_divider('Error: Model initialization failed.')
         return None
     
-    #generated_data = model.sample_data(train_data.shape[0])
-    generated_data = model.get_prior_samples(train_data.shape[0])
+    generated_data = model.sample_data(train_data.shape[0])
+    #generated_data = model.get_prior_samples(train_data.shape[0])
     output_path = os.path.join(output_gen_path,model_name,f'{dataset_name}_gen.pkl')
     make_sure_path_exist(output_path)
     with mgzip.open(os.path.join(output_path), 'wb') as f:
@@ -50,7 +52,9 @@ def load_generated_data(cfg):
     output_gen_path = cfg.get('output_gen_path',r'./data/gen/')
 
     file_path = os.path.join(output_gen_path,model_name)
-    gen_data_path = os.path.join(file_path,f'{dataset_name}_train.pkl')
+    print(file_path)
+    gen_data_path = os.path.join(file_path,f'{dataset_name}_gen.pkl')
+    print(gen_data_path)
 
     # Read generated data
     if not os.path.exists(gen_data_path):

@@ -182,6 +182,7 @@ class TimeVAE(BaseVariationalAutoencoder):
         decoder_inputs = Input(shape=(self.latent_dim,), name="decoder_input")
 
         outputs = None
+        print(self.latent_dim)
         outputs = self.level_model(decoder_inputs)
         # trend polynomials
         if self.trend_poly is not None and self.trend_poly > 0:
@@ -218,6 +219,7 @@ class TimeVAE(BaseVariationalAutoencoder):
     def level_model(self, z):
         level_params = Dense(self.feat_dim, name="level_params", activation="relu")(z)
         level_params = Dense(self.feat_dim, name="level_params2")(level_params)
+        print(level_params.shape)
         level_params = Reshape(target_shape=(1, self.feat_dim))(
             level_params
         )  # shape: (N, 1, D)
@@ -225,7 +227,9 @@ class TimeVAE(BaseVariationalAutoencoder):
         ones_tensor = tf.ones(
             shape=[1, self.seq_len, 1], dtype=tf.float32
         )  # shape: (1, T, D)
-
+        
+        print(level_params.dtype)
+        print(ones_tensor.dtype)
         level_vals = level_params * ones_tensor
         # print('level_vals', tf.shape(level_vals))
         return level_vals
@@ -257,6 +261,9 @@ class TimeVAE(BaseVariationalAutoencoder):
         )(x)
 
         x = Flatten(name="dec_flatten")(x)
+        print(self.seq_len)
+        print(self.feat_dim)
+        print(x.shape)
         x = Dense(self.seq_len * self.feat_dim, name="decoder_dense_final")(x)
         residuals = Reshape(target_shape=(self.seq_len, self.feat_dim))(x)
         return residuals

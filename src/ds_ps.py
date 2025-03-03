@@ -54,7 +54,8 @@ def discriminative_score_metrics (ori_data, generated_data, iterations = 2000, r
     T_hat = tf.compat.v1.placeholder(tf.int32, [None], name = "myinput_t_hat")
 
     # discriminator function
-    def discriminator (x, t, rnn_name = 'gru'):
+    #def discriminator (x, t, rnn_name = 'gru'):
+    def discriminator (x, t, rnn_name = 'lstm'):
         """
     Simple discriminator function.
     Args:
@@ -71,22 +72,30 @@ def discriminative_score_metrics (ori_data, generated_data, iterations = 2000, r
                 d_cell = tf.keras.layers.GRUCell(units=hidden_dim, activation=tf.nn.tanh, name = 'd_cell')
             # LSTM
             elif (rnn_name == 'lstm'):
-                d_cell = tf.keras.layers.LSTMCell(num_units=hidden_dim, activation=tf.nn.tanh, name = 'd_cell')
+                d_cell = tf.keras.layers.LSTMCell(units=hidden_dim, activation=tf.nn.tanh, name = 'd_cell')
             # LSTM Layer Normalization
             elif (rnn_name == 'lstmLN'):
                 d_cell = tf.contrib.rnn.LayerNormBasicLSTMCell(num_units=hidden_dim, activation=tf.nn.tanh, name = 'd_cell')
 
 
             #d_outputs, d_last_states = tf.keras.layers.RNN(d_cell, x, dtype=tf.float32, sequence_length = t)
-            d_outputs, d_last_states = tf.keras.layers.RNN(d_cell, dtype=tf.float32, return_state=True)(x)
-            y_hat_logit = tf.keras.layers.Dense(1, activation=None)(d_last_states)
+            #d_outputs, d_last_states = tf.keras.layers.RNN(d_cell, dtype=tf.float32, return_state=True)(x)
+            d_outputs = tf.keras.layers.RNN(d_cell, dtype=tf.float32, return_state=True)(x)
+            d_last_states = d_outputs[1:]
+            d_outputs = d_outputs[0]
+            y_hat_logit = tf.keras.layers.Dense(1, activation=None)(d_last_states[-1])
+            #y_hat_logit = tf.keras.layers.Dense(1, activation=None)(d_last_states)
             y_hat = tf.nn.sigmoid(y_hat_logit)
             d_vars = [v for v in tf.compat.v1.all_variables() if v.name.startswith(vs.name)]
 
         return y_hat_logit, y_hat, d_vars
-
+    
+    '''
     y_logit_real, y_pred_real, d_vars = discriminator(X, T, rnn_name = 'gru')
     y_logit_fake, y_pred_fake, _ = discriminator(X_hat, T_hat, rnn_name = 'gru')
+    '''
+    y_logit_real, y_pred_real, d_vars = discriminator(X, T, rnn_name = 'lstm')
+    y_logit_fake, y_pred_fake, _ = discriminator(X_hat, T_hat, rnn_name = 'lstm')
         
     # Loss for the discriminator
     d_loss_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits = y_logit_real, 
@@ -186,25 +195,25 @@ def predictive_score_metrics (ori_data, generated_data, iterations = 5000, rnn_n
                 p_cell = tf.keras.layers.GRUCell(units=hidden_dim, activation=tf.nn.tanh, name = 'p_cell')
             # LSTM
             elif (rnn_name == 'lstm'):
-                p_cell = tf.keras.layers.LSTMCell(num_units=hidden_dim, activation=tf.nn.tanh, name = 'p_cell')
+                p_cell = tf.keras.layers.LSTMCell(units=hidden_dim, activation=tf.nn.tanh, name = 'p_cell')
             # LSTM Layer Normalization
             elif (rnn_name == 'lstmLN'):
                 p_cell = tf.contrib.rnn.LayerNormBasicLSTMCell(num_units=hidden_dim, activation=tf.nn.tanh, name = 'p_cell')
 
 
-            p_outputs, p_last_states = tf.keras.layers.RNN(p_cell, dtype=tf.float32, return_state=True)(x)
-            y_hat_logit = tf.keras.layers.Dense(max_seq_len-1, activation=None)(p_outputs)
+            #p_outputs, p_last_states = tf.keras.layers.RNN(p_cell, dtype=tf.float32, return_state=True)(x)
+            #y_hat_logit = tf.keras.layers.Dense(max_seq_len-1, activation=None)(p_outputs)
+            p_outputs = tf.keras.layers.RNN(p_cell, dtype=tf.float32, return_sequences=True)(x)
+            y_hat_logit = tf.keras.layers.Dense(1, activation=None)(p_outputs)
             y_hat_logit = tf.reshape(y_hat_logit, shape=(tf.shape(y_hat_logit)[0], max_seq_len-1, 1), name="reshape")
-            print(y_hat_logit.shape)
             y_hat = tf.nn.sigmoid(y_hat_logit)
             p_vars = [v for v in tf.compat.v1.all_variables() if v.name.startswith(vs.name)]
 
         return y_hat, p_vars
     
-    y_pred, p_vars = predictor(X, T, rnn_name = 'gru')
+    #y_pred, p_vars = predictor(X, T, rnn_name = 'gru')
+    y_pred, p_vars = predictor(X, T, rnn_name = 'lstm')
     # Loss for the predictor
-    print(y_pred.shape)
-    print(Y[0])
     p_loss = tf.compat.v1.losses.absolute_difference(Y, y_pred)
     # optimizer
     p_solver = tf.compat.v1.train.AdamOptimizer().minimize(p_loss, var_list = p_vars)
