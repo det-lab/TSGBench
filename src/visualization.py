@@ -20,8 +20,9 @@ def visualize_tsne(ori_data, gen_data, result_path, save_file_name):
     colors = ["C0" for i in range(sample_num)] + ["C1" for i in range(sample_num)]    
     
     prep_data_final = np.concatenate((prep_data, prep_data_hat), axis = 0)
-    
-    tsne = TSNE(n_components = 2, verbose = 0, perplexity = 30, n_iter = 1000, random_state = 42) # 40, 300
+
+    # comment here so git realizes the file has been modified
+    tsne = TSNE(n_components = 2, verbose = 0, perplexity = 30, max_iter = 1000, random_state = 42) # 40, 300
     tsne_results = tsne.fit_transform(prep_data_final)
 
     fig, ax = plt.subplots(1,1,figsize = (2,2))

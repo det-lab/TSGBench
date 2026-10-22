@@ -107,6 +107,61 @@ def main():
         
     print('Program normal end.')
 
+# Version of main that isn't called from the cmd line
+def main_non_cmd(args):
+    if args.config and not args.no_load_config:
+        # Load configuration from YAML file
+        config = load_config_from_file(args.config)
+    else:
+        # Build configuration from command-line arguments
+        args_dict = vars(args)
+        config = {'preprocessing':{},'generation':{},'evaluation':{}}
+        for key, value in args_dict.items():
+            if key in ['do_preprocessing','original_data_path','output_ori_path','use_ucr_uea_dataset','ucr_uea_dataset_name','seq_length','valid_ratio','do_normalization']:
+                config['preprocessing'][key]=value
+            if key == 'dataset_name_pre':
+                config['preprocessing']['dataset_name']=value
+
+            if key in ['do_generation','model','output_gen_path','pretrain_path','latent_dim','hidden_layer']:
+                config['generation'][key]=value
+            if key == 'no_cuda_gen':
+                config['generation']['no_cuda']=value
+            if key == 'cuda_device_gen':
+                config['generation']['cuda_device']=value
+            
+            if key in ['do_evaluation','result_path','method_list','iter_disc','iter_pred','rnn_name']:
+                config['evaluation'][key]=value
+            if key == 'no_cuda_eval':
+                config['generation']['no_cuda']=value
+            if key == 'cuda_device_eval':
+                config['generation']['cuda_device']=value
+    
+    print(config)
+
+    # Execute pipeline steps
+    if config['preprocessing'].get('do_preprocessing',True):
+        data = preprocess_data(config['preprocessing'])
+    else:
+        data = load_preprocessed_data(config['preprocessing'])
+
+    # Data preprocessed can be used to train your generation model, assume training process already done
+
+    if config['generation'].get('do_generation',True):
+        generated_data = generate_data(config['generation'], data)
+    else:
+        generated_data = load_generated_data(config['generation'])
+
+    if config['evaluation'].get('do_evaluation',True):
+        dataset_name = config['preprocessing'].get('dataset_name','dataset')
+        model_name = config['generation'].get('model','TimeVAE')
+        if 'dataset_name' not in config['evaluation']:
+            config['evaluation']['evaluation'] = dataset_name
+        if 'model' not in config['evaluation']:
+            config['evaluation']['model'] = model_name
+        results = evaluate_data(config['evaluation'],data,generated_data)
+        
+    print('Program normal end.')
+
 if __name__ == "__main__":
     # Add the project root to sys.path if hasn't
     if project_root not in sys.path:
