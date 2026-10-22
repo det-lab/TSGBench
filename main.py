@@ -107,7 +107,7 @@ def main():
         
     print('Program normal end.')
 
-# Version of main that isn't called from the cmd line
+# Version of main that isn't called from the cmd line 
 def main_non_cmd(args):
     if args.config and not args.no_load_config:
         # Load configuration from YAML file
