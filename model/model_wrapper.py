@@ -47,4 +47,4 @@ def initialize_timegan_model(cfg, data):
         cfg["load"] = False
         model = run_timegan_fresh
     return ModelWrapper("timeGAN", model, cfg, data)
-    
+
